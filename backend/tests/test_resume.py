@@ -2,6 +2,10 @@
 
 import io
 
+
+import os
+os.makedirs("data", exist_ok=True)
+
 import pytest
 from httpx import AsyncClient
 
