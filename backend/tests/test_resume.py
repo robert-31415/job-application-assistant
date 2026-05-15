@@ -1,16 +1,14 @@
 """Tests for the resume upload and retrieval endpoints."""
 
 import io
-
-
 import os
-os.makedirs("data", exist_ok=True)
 
 import pytest
 from httpx import AsyncClient
 
 from app.main import app
 
+os.makedirs("data", exist_ok=True)
 
 @pytest.mark.asyncio
 async def test_get_current_resume_no_upload_returns_404() -> None:
