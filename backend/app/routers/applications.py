@@ -13,10 +13,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models.db import Application
 from app.models.schemas import (
+    KANBAN_STATUSES,
     ApplicationCreate,
     ApplicationResponse,
     ApplicationUpdate,
-    KANBAN_STATUSES,
 )
 
 router = APIRouter(prefix="/api/applications", tags=["applications"])

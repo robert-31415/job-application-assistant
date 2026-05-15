@@ -7,7 +7,6 @@ JDAnalysisOutput instance.
 Phase 2 implementation.
 """
 
-from app.config import settings
 from app.models.schemas import JDAnalysisOutput
 
 
