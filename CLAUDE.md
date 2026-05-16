@@ -185,6 +185,16 @@ cd frontend && npm run test
   4. Clear overrides in the fixture teardown.
   All future test files must follow this pattern — never share state with the dev database.
 - **Ruff E402:** all imports must appear before any executable module-level code. In test files, `os.makedirs(...)` calls belong inside fixtures, not at module level.
+- **Anthropic SDK mock pattern — required for all agent tests:** When mocking `anthropic.AsyncAnthropic.messages.create`, the response content must use real `TextBlock` instances, not `MagicMock` objects. The agents filter `response.content` with `isinstance(block, TextBlock)`, so plain mocks fail the check and raise `StopIteration`. Always construct the mock response as a real `Message` object:
+  ```python
+  from anthropic.types import TextBlock, Message, Usage
+  mock_response = Message(
+      id="msg_test", type="message", role="assistant",
+      content=[TextBlock(type="text", text=json.dumps({...}))],
+      model="claude-sonnet-4-6", stop_reason="end_turn",
+      stop_sequence=None, usage=Usage(input_tokens=10, output_tokens=50),
+  )
+  ```
 
 ---
 
