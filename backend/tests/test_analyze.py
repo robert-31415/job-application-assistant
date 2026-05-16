@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import pytest_asyncio
+from anthropic.types import Message, TextBlock, Usage
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -70,13 +71,18 @@ _MOCK_JD_ANALYSIS = JDAnalysisOutput(
 _MOCK_JD_RAW = "We are looking for a Senior Software Engineer to join our team..."
 
 
-def _make_mock_claude_response(output: JDAnalysisOutput) -> MagicMock:
-    """Build a mock object that looks like an anthropic Messages response."""
-    content_block = MagicMock()
-    content_block.text = output.model_dump_json()
-    message = MagicMock()
-    message.content = [content_block]
-    return message
+def _make_mock_claude_response(output: JDAnalysisOutput) -> Message:
+    """Build a realistic Message response with a real TextBlock."""
+    return Message(
+        id="msg_test",
+        type="message",
+        role="assistant",
+        content=[TextBlock(type="text", text=output.model_dump_json())],
+        model="claude-sonnet-4-6",
+        stop_reason="end_turn",
+        stop_sequence=None,
+        usage=Usage(input_tokens=10, output_tokens=50),
+    )
 
 
 # ---------------------------------------------------------------------------
