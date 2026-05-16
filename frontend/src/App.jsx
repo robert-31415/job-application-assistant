@@ -3,10 +3,11 @@
  * Each route maps to a full-page view component.
  */
 import { BrowserRouter, Link, NavLink, Route, Routes } from 'react-router-dom'
-import { BriefcaseBusiness, FileText, LayoutDashboard, ListChecks } from 'lucide-react'
+import { BriefcaseBusiness, FileText, LayoutDashboard, ListChecks, PenLine } from 'lucide-react'
 import Dashboard from './pages/Dashboard.jsx'
 import Analyze from './pages/Analyze.jsx'
 import Applications from './pages/Applications.jsx'
+import CoverLetter from './pages/CoverLetter.jsx'
 import Export from './pages/Export.jsx'
 
 /** Navigation items rendered in the sidebar. */
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/analyze', label: 'Analyze JD', icon: FileText },
   { to: '/applications', label: 'Applications', icon: BriefcaseBusiness },
+  { to: '/cover-letter', label: 'Cover Letter', icon: PenLine },
   { to: '/export', label: 'Export', icon: ListChecks },
 ]
 
@@ -66,6 +68,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/analyze" element={<Analyze />} />
             <Route path="/applications" element={<Applications />} />
+            <Route path="/cover-letter" element={<CoverLetter />} />
             <Route path="/export" element={<Export />} />
           </Routes>
         </main>

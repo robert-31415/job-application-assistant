@@ -151,7 +151,7 @@ cd frontend && npm run test
 | 1 | Scaffold, database, resume upload | ✅ Complete |
 | 2 | JD Analysis Agent + Tavily | ✅ Complete |
 | 3 | Resume Comparison Agent | ✅ Complete |
-| 4 | Cover Letter Generator | Pending |
+| 4 | Cover Letter Generator | ✅ Complete |
 | 5 | Kanban Application Tracker | Pending |
 | 6 | Export, Interview Prep, README | Pending |
 
@@ -226,3 +226,11 @@ Three persistent tabs for local development — don't mix commands between them:
   - 50–74: Meets minimum requirements
   - 75–89: Strong match
   - 90–100: Exceptional match
+- **Cover letter version storage format:** `cover_letter_versions_json` is a JSON array of serialised `CoverLetterOutput` objects, ordered oldest to newest. Each generate or refine call appends one entry. `cover_letter_text` always holds the most recent version's text. Example array entry:
+  ```json
+  {"version": 1, "tone": "professional", "text": "...", "word_count": 312, "generated_at": "2026-05-16T10:00:00"}
+  ```
+- **`POST /api/cover-letter/generate`** requires `jd_analysis_json` and `gap_analysis_json` to be non-null (run `/api/analyze/jd` and `/api/compare/resume` first) and at least one uploaded resume. Tone options: `professional`, `conversational`, `bold`.
+- **`POST /api/cover-letter/refine`** requires `cover_letter_text` to be non-null (run generate first). Sends current text + user instruction to Claude; preserves company name and role title.
+- **Cover letter agent exports:** `generate_cover_letter(resume_text, jd_analysis, gap_analysis, tone, version)` and `refine_cover_letter(current_text, instruction, tone, version)` in `agents/cover_letter.py`.
+- **docx npm package** is installed in the frontend and used by `CoverLetter.jsx` to produce `.docx` downloads via `Packer.toBlob()`.
