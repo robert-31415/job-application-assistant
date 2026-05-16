@@ -145,3 +145,15 @@ class CoverLetterGenerateRequest(BaseModel):
 
     application_id: int
     tone: str = "professional"
+
+
+class JDAnalyzeRequest(BaseModel):
+    """Request body for the JD analysis endpoint."""
+
+    application_id: int
+
+
+class CompareResumeRequest(BaseModel):
+    """Request body for the resume comparison endpoint."""
+
+    application_id: int

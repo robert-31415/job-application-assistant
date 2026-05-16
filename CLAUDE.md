@@ -134,8 +134,8 @@ cd frontend && npm run test
 | POST | `/api/resume/upload` | ✅ Phase 1 |
 | GET | `/api/resume/current` | ✅ Phase 1 |
 | GET/POST/PATCH/DELETE | `/api/applications` | ✅ Phase 1 |
-| POST | `/api/analyze/jd` | Phase 2 |
-| POST | `/api/compare/resume` | Phase 3 |
+| POST | `/api/analyze/jd` | ✅ Phase 2 |
+| POST | `/api/compare/resume` | ✅ Phase 3 |
 | POST | `/api/cover-letter/generate` | Phase 4 |
 | POST | `/api/cover-letter/refine` | Phase 4 |
 | POST | `/api/interview-prep/generate` | Phase 6 |
@@ -149,11 +149,54 @@ cd frontend && npm run test
 | Phase | Description | Status |
 |---|---|---|
 | 1 | Scaffold, database, resume upload | ✅ Complete |
-| 2 | JD Analysis Agent + Tavily | Pending |
-| 3 | Resume Comparison Agent | Pending |
+| 2 | JD Analysis Agent + Tavily | ✅ Complete |
+| 3 | Resume Comparison Agent | ✅ Complete |
 | 4 | Cover Letter Generator | Pending |
 | 5 | Kanban Application Tracker | Pending |
 | 6 | Export, Interview Prep, README | Pending |
+
+---
+
+## Environment & Configuration Notes
+
+- **`.env` location:** the `.env` file must live inside `backend/`, not the repo root. `pydantic-settings` resolves `.env` relative to the process working directory, and uvicorn runs from `backend/`.
+- **`data/` directory:** must be created manually before the first uvicorn start — it is git-ignored and not auto-created on boot:
+  ```bash
+  mkdir -p backend/data
+  ```
+- **SQLite path:** the database file is at `backend/data/app.db`. A stray empty `data/app.db` at the repo root is an artefact from running uvicorn from the wrong directory — delete it if it appears.
+- **Starting uvicorn:** always run from inside `backend/`:
+  ```bash
+  cd backend && uvicorn app.main:app --reload --port 8000
+  ```
+  Never run uvicorn from the repo root — the app module and `.env` will not resolve correctly.
+
+---
+
+## CI Configuration Notes
+
+- **`backend/app/config.py`:** the `Settings()` instantiation line carries `# type: ignore[call-arg]` to suppress a mypy false positive caused by pydantic-settings' dynamic field population.
+- **Frontend test script:** `vitest run --passWithNoTests` in `package.json` so CI passes before any frontend tests are written.
+- **Backend test pattern — required for all new test files:**
+  `backend/tests/test_resume.py` establishes the canonical pattern:
+  1. Create a separate `TEST_DATABASE_URL` pointing at `data/test.db`.
+  2. Use a `pytest_asyncio` fixture with `autouse=True` that calls `Base.metadata.create_all` before each test and `Base.metadata.drop_all` after.
+  3. Override `app.dependency_overrides[get_db]` with a function that uses the test session.
+  4. Clear overrides in the fixture teardown.
+  All future test files must follow this pattern — never share state with the dev database.
+- **Ruff E402:** all imports must appear before any executable module-level code. In test files, `os.makedirs(...)` calls belong inside fixtures, not at module level.
+
+---
+
+## iTerm Tab Layout
+
+Three persistent tabs for local development — don't mix commands between them:
+
+| Tab | Directory | Process |
+|---|---|---|
+| Tab 1 | `backend/` | `uvicorn app.main:app --reload --port 8000` — leave running |
+| Tab 2 | `frontend/` | `npm run dev` — leave running |
+| Tab 3 | repo root | all `git`, `sqlite3`, and `curl` commands run here |
 
 ---
 
@@ -162,5 +205,14 @@ cd frontend && npm run test
 - All agent calls go through the FastAPI backend — no direct Claude calls from the frontend.
 - Agents accept Pydantic models as input and return Pydantic models as output.
 - SQLite data is persisted in `./data/app.db` (mounted as a Docker volume).
-- Streaming endpoints use Server-Sent Events (SSE); the frontend consumes them with the Fetch API `ReadableStream`.
+- **`POST /api/analyze/jd`** returns a single JSON `JDAnalysisOutput` and persists `jd_analysis_json` to the database. This is the source of truth for persistence.
+- **`GET /api/analyze/jd/stream?application_id={id}`** streams the same Claude call token-by-token as Server-Sent Events. Each event is `data: {token}\n\n`; the final event is `data: [DONE]\n\n`. This endpoint is **read-only** — it never writes to the database. The frontend consumes it with the Fetch API `ReadableStream`.
+- `SYSTEM_PROMPT`, `build_user_message`, and `get_tavily_snippets` are exported from `agents/jd_analyzer.py` so both the batch and streaming endpoints share the same prompt and Tavily logic without duplication.
 - Model default is `claude-sonnet-4-6`. Override with `CLAUDE_MODEL` env var.
+- The Analyze page creates an Application record first (`POST /api/applications`), then passes the resulting `application_id` to `POST /api/analyze/jd`. The agent reads `jd_raw` and `company` from the database row — it does not accept them inline.
+- **`POST /api/compare/resume`** requires the application to already have a non-null `jd_analysis_json` (run `/api/analyze/jd` first). It loads the most recently uploaded resume from the `resumes` table and returns a `GapAnalysisOutput`, persisting `match_score` and `gap_analysis_json` to the application row.
+- **Match score rubric** (applied by the Resume Comparator agent):
+  - 0–49: Does not meet minimum requirements
+  - 50–74: Meets minimum requirements
+  - 75–89: Strong match
+  - 90–100: Exceptional match

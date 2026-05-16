@@ -83,6 +83,35 @@ export async function deleteApplication(id) {
 }
 
 // ---------------------------------------------------------------------------
+// JD Analysis
+// ---------------------------------------------------------------------------
+
+/**
+ * Run the JD Analyzer agent on an application's stored job description.
+ * @param {{ application_id: number }} payload
+ * @returns {Promise<import('../types').JDAnalysisOutput>}
+ */
+export async function analyzeJD(payload) {
+  const { data } = await apiClient.post('/api/analyze/jd', payload)
+  return data
+}
+
+// ---------------------------------------------------------------------------
+// Resume comparison
+// ---------------------------------------------------------------------------
+
+/**
+ * Run the Resume Comparator agent for an application.
+ * Requires the application to have an existing jd_analysis_json (run analyzeJD first).
+ * @param {{ application_id: number }} payload
+ * @returns {Promise<import('../types').GapAnalysisOutput>}
+ */
+export async function compareResume(payload) {
+  const { data } = await apiClient.post('/api/compare/resume', payload)
+  return data
+}
+
+// ---------------------------------------------------------------------------
 // Cover letter
 // ---------------------------------------------------------------------------
 
