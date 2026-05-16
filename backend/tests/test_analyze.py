@@ -170,6 +170,7 @@ async def test_analyze_jd_happy_path_returns_valid_output():
 
     # Verify the result was persisted
     from sqlalchemy import select
+
     from app.models.db import Application as AppModel
 
     async with TestSessionLocal() as session:

@@ -213,6 +213,7 @@ async def test_compare_resume_happy_path():
 
     # Verify persistence
     from sqlalchemy import select
+
     from app.models.db import Application as AppModel
 
     async with TestSessionLocal() as session:
