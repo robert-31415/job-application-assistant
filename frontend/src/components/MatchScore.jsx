@@ -130,7 +130,7 @@ export default function MatchScore({ gapAnalysis }) {
   if (!gapAnalysis) {
     return (
       <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-400 text-sm">
-        Run "Compare with My Resume" to see your match score here.
+        Run &quot;Compare with My Resume&quot; to see your match score here.
       </div>
     )
   }
