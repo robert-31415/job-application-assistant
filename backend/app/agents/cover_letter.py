@@ -9,7 +9,7 @@ Public functions:
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import anthropic
 from anthropic.types import TextBlock
@@ -154,7 +154,7 @@ async def generate_cover_letter(
         tone=tone,
         text=letter_text,
         word_count=len(letter_text.split()),
-        generated_at=datetime.now(timezone.utc),
+        generated_at=datetime.now(UTC),
     )
 
 
@@ -204,5 +204,5 @@ async def refine_cover_letter(
         tone=tone,
         text=letter_text,
         word_count=len(letter_text.split()),
-        generated_at=datetime.now(timezone.utc),
+        generated_at=datetime.now(UTC),
     )

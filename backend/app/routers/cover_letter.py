@@ -13,6 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.cover_letter import (
     generate_cover_letter as agent_generate,
+)
+from app.agents.cover_letter import (
     refine_cover_letter as agent_refine,
 )
 from app.database import get_db
