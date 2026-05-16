@@ -73,6 +73,7 @@ async def analyze_jd_endpoint(
     Returns 404 if the application does not exist or has no job description text.
     """
     application = await _load_application_with_jd(payload.application_id, db)
+    assert application.jd_raw is not None  # narrowed above by 404 guard
 
     logger.info(
         "Starting JD analysis for application %d (%s)",
@@ -117,6 +118,7 @@ async def stream_jd_analysis(
     # Perform all DB access and validation before opening the streaming response.
     # Once StreamingResponse is returned, we can no longer raise HTTPException.
     application = await _load_application_with_jd(application_id, db)
+    assert application.jd_raw is not None  # narrowed above by 404 guard
 
     company_snippets = await get_tavily_snippets(application.company)
     user_message = build_user_message(application.jd_raw, company_snippets)

@@ -17,6 +17,7 @@ import json
 import logging
 
 import anthropic
+from anthropic.types import TextBlock
 from tavily import TavilyClient
 
 from app.config import settings
@@ -131,7 +132,8 @@ async def analyze_jd(jd_raw: str, company_hint: str) -> JDAnalysisOutput:
         messages=[{"role": "user", "content": user_message}],
     )
 
-    raw_text = message.content[0].text.strip()
+    text = next(block.text for block in message.content if isinstance(block, TextBlock))
+    raw_text = text.strip()
     logger.debug("Claude raw response (first 200 chars): %s", raw_text[:200])
 
     # Strip accidental markdown fences if Claude adds them despite instructions
