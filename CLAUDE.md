@@ -152,7 +152,7 @@ cd frontend && npm run test
 | 2 | JD Analysis Agent + Tavily | ✅ Complete |
 | 3 | Resume Comparison Agent | ✅ Complete |
 | 4 | Cover Letter Generator | ✅ Complete |
-| 5 | Kanban Application Tracker | Pending |
+| 5 | Kanban Application Tracker | ✅ Complete |
 | 6 | Export, Interview Prep, README | Pending |
 
 ---
@@ -234,3 +234,8 @@ Three persistent tabs for local development — don't mix commands between them:
 - **`POST /api/cover-letter/refine`** requires `cover_letter_text` to be non-null (run generate first). Sends current text + user instruction to Claude; preserves company name and role title.
 - **Cover letter agent exports:** `generate_cover_letter(resume_text, jd_analysis, gap_analysis, tone, version)` and `refine_cover_letter(current_text, instruction, tone, version)` in `agents/cover_letter.py`.
 - **docx npm package** is installed in the frontend and used by `CoverLetter.jsx` to produce `.docx` downloads via `Packer.toBlob()`.
+- **Kanban drag-and-drop:** `@hello-pangea/dnd` (already in `package.json` from Phase 1) powers the Kanban board. `DragDropContext` wraps the board; each column is a `Droppable`; each card is a `Draggable`. Drag-end fires `PATCH /api/applications/{id}` with the new status value.
+- **Kanban column-to-status mapping** (display label → API value):
+  - Saved → `saved`, Applied → `applied`, Phone Screen → `screen`, Interview → `interview`, Offer → `offer`, Rejected → `rejected`
+- **Kanban component architecture:** `components/KanbanBoard.jsx` contains the DnD board logic and is used by both `pages/Applications.jsx` (route `/applications`) and `pages/KanbanBoard.jsx` (route `/kanban`). `components/KanbanCard.jsx` renders each card with notes/delete. `components/ApplicationDrawer.jsx` is the right-side detail drawer. `components/AddApplicationModal.jsx` creates an application then navigates to `/analyze` with `state: { applicationId }`.
+- **Analyze page pre-population:** when navigated to with `state.applicationId` (from `AddApplicationModal`), `Analyze.jsx` loads the application via `listApplications()`, pre-fills the form, and skips `createApplication` on submit since the record already exists.

@@ -12,8 +12,9 @@
  * The application record created here persists to the Kanban board automatically.
  */
 import { AlertCircle, GitCompare, Loader2, Sparkles } from 'lucide-react'
-import { useState } from 'react'
-import { analyzeJD, compareResume, createApplication } from '../api/client.js'
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { analyzeJD, compareResume, createApplication, listApplications } from '../api/client.js'
 import JDAnalysis from '../components/JDAnalysis.jsx'
 import MatchScore from '../components/MatchScore.jsx'
 
@@ -34,6 +35,8 @@ const INPUT_CLS =
   'placeholder-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition'
 
 export default function Analyze() {
+  const { state: locationState } = useLocation()
+
   const [company, setCompany] = useState('')
   const [roleTitle, setRoleTitle] = useState('')
   const [jdText, setJdText] = useState('')
@@ -49,6 +52,19 @@ export default function Analyze() {
   const [comparing, setComparing] = useState(false)
   const [compareError, setCompareError] = useState(null)
 
+  // Pre-populate fields when navigated from AddApplicationModal with an existing applicationId
+  useEffect(() => {
+    if (!locationState?.applicationId) return
+    listApplications().then((apps) => {
+      const app = apps.find((a) => a.id === locationState.applicationId)
+      if (!app) return
+      setCompany(app.company)
+      setRoleTitle(app.role_title)
+      setJdText(app.jd_raw ?? '')
+      setApplicationId(app.id)
+    })
+  }, [locationState?.applicationId])
+
   const canSubmit = company.trim() && roleTitle.trim() && jdText.trim().length >= 50
 
   async function handleSubmit(e) {
@@ -63,16 +79,20 @@ export default function Analyze() {
     setCompareError(null)
 
     try {
-      // Step 1: persist the application record so /api/analyze/jd can load it by ID
-      const application = await createApplication({
-        company: company.trim(),
-        role_title: roleTitle.trim(),
-        jd_raw: jdText.trim(),
-      })
-      setApplicationId(application.id)
+      // Step 1: use existing applicationId (from navigation state) or create a new record
+      let appId = applicationId
+      if (!appId) {
+        const application = await createApplication({
+          company: company.trim(),
+          role_title: roleTitle.trim(),
+          jd_raw: jdText.trim(),
+        })
+        appId = application.id
+        setApplicationId(appId)
+      }
 
       // Step 2: run the JD analysis agent
-      const result = await analyzeJD({ application_id: application.id })
+      const result = await analyzeJD({ application_id: appId })
       setAnalysis(result)
     } catch (err) {
       const detail =
