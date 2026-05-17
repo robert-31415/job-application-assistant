@@ -185,6 +185,7 @@ cd frontend && npm run test
   4. Clear overrides in the fixture teardown.
   All future test files must follow this pattern — never share state with the dev database.
 - **Ruff E402:** all imports must appear before any executable module-level code. In test files, `os.makedirs(...)` calls belong inside fixtures, not at module level.
+- **python-docx mypy compatibility:** `docx.api.Document` is not resolvable as a type annotation by mypy. In `routers/export.py`, avoid using `Document` as a type annotation — use `Any` from `typing` or omit the return type entirely. Add `# type: ignore[attr-defined]` to any `.save()` call on a document object.
 - **Anthropic SDK mock pattern — required for all agent tests:** When mocking `anthropic.AsyncAnthropic.messages.create`, the response content must use real `TextBlock` instances, not `MagicMock` objects. The agents filter `response.content` with `isinstance(block, TextBlock)`, so plain mocks fail the check and raise `StopIteration`. Always construct the mock response as a real `Message` object:
   ```python
   from anthropic.types import TextBlock, Message, Usage
