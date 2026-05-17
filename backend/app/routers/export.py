@@ -7,6 +7,7 @@ GET /api/export/interview-prep/{id}  — download interview prep sheet as .docx
 import io
 import logging
 from datetime import date
+from typing import Any
 
 from docx import Document
 from docx.shared import Pt, RGBColor
@@ -28,10 +29,10 @@ _DOCX_MEDIA_TYPE = (
 )
 
 
-def _docx_response(doc: Document, filename: str) -> StreamingResponse:
+def _docx_response(doc: Any, filename: str) -> StreamingResponse:
     """Serialise a python-docx Document to a StreamingResponse."""
     buffer = io.BytesIO()
-    doc.save(buffer)
+    doc.save(buffer)  # type: ignore[attr-defined]
     buffer.seek(0)
     return StreamingResponse(
         buffer,
@@ -44,7 +45,7 @@ def _build_cover_letter_docx(
     company: str,
     role_title: str,
     cover_letter_text: str,
-) -> Document:
+) -> Any:
     """Build a professionally formatted cover letter DOCX."""
     doc = Document()
 
@@ -86,7 +87,7 @@ def _build_interview_prep_docx(
     role_title: str,
     gap_analysis: GapAnalysisOutput,
     interview_prep: InterviewPrepOutput,
-) -> Document:
+) -> Any:
     """Build a formatted interview prep sheet DOCX."""
     doc = Document()
 
