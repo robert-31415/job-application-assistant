@@ -28,7 +28,7 @@ import {
   Paragraph,
   TextRun,
 } from 'docx'
-import { generateCoverLetter, listApplications, refineCoverLetter } from '../api/client.js'
+import { generateCoverLetter, getApplication, listApplications, refineCoverLetter } from '../api/client.js'
 
 // ---------------------------------------------------------------------------
 // Tone config
@@ -183,6 +183,17 @@ export default function CoverLetter() {
       .catch(() => setApplications([]))
       .finally(() => setAppsLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (!selectedAppId) return
+    getApplication(Number(selectedAppId)).then((app) => {
+      if (app.cover_letter_text && app.cover_letter_versions_json) {
+        const parsed = JSON.parse(app.cover_letter_versions_json)
+        setVersions(parsed)
+        setActiveVersion(parsed[parsed.length - 1])
+      }
+    }).catch(() => {})
+  }, [selectedAppId])
 
   const currentLetter = activeVersion?.text ?? null
 

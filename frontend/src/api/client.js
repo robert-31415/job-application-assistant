@@ -63,6 +63,16 @@ export async function createApplication(payload) {
 }
 
 /**
+ * Fetch a single application by ID.
+ * @param {number} id
+ * @returns {Promise<import('../types').ApplicationResponse>}
+ */
+export async function getApplication(id) {
+  const { data } = await apiClient.get(`/api/applications/${id}`)
+  return data
+}
+
+/**
  * Partially update an application (status, notes, etc.).
  * @param {number} id
  * @param {Partial<{ company: string, role_title: string, status: string, notes: string }>} payload
@@ -147,6 +157,44 @@ export async function refineCoverLetter(payload) {
 export async function generateInterviewPrep(payload) {
   const { data } = await apiClient.post('/api/interview-prep/generate', payload)
   return data
+}
+
+// ---------------------------------------------------------------------------
+// DOCX exports — fetch as blob and trigger browser download
+// ---------------------------------------------------------------------------
+
+/**
+ * Download the cover letter for an application as a .docx file.
+ * @param {number} id
+ * @returns {Promise<void>}
+ */
+export async function exportCoverLetter(id) {
+  const response = await apiClient.get(`/api/export/cover-letter/${id}`, {
+    responseType: 'blob',
+  })
+  const url = URL.createObjectURL(response.data)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'cover_letter.docx'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+/**
+ * Download the interview prep sheet for an application as a .docx file.
+ * @param {number} id
+ * @returns {Promise<void>}
+ */
+export async function exportInterviewPrep(id) {
+  const response = await apiClient.get(`/api/export/interview-prep/${id}`, {
+    responseType: 'blob',
+  })
+  const url = URL.createObjectURL(response.data)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'interview_prep.docx'
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 export default apiClient

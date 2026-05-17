@@ -58,6 +58,7 @@ class ApplicationResponse(BaseModel):
     gap_analysis_json: str | None
     cover_letter_text: str | None
     cover_letter_versions_json: str | None
+    interview_prep_json: str | None
     notes: str | None
     created_at: datetime
     updated_at: datetime
@@ -155,5 +156,11 @@ class JDAnalyzeRequest(BaseModel):
 
 class CompareResumeRequest(BaseModel):
     """Request body for the resume comparison endpoint."""
+
+    application_id: int
+
+
+class InterviewPrepGenerateRequest(BaseModel):
+    """Request body for the interview prep generation endpoint."""
 
     application_id: int

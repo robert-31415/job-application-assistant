@@ -94,6 +94,7 @@ export default function Analyze() {
       // Step 2: run the JD analysis agent
       const result = await analyzeJD({ application_id: appId })
       setAnalysis(result)
+      setApplicationId(appId)
     } catch (err) {
       const detail =
         err?.response?.data?.detail ?? err?.message ?? 'An unexpected error occurred.'

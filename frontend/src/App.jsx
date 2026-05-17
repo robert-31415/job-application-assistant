@@ -3,11 +3,12 @@
  * Each route maps to a full-page view component.
  */
 import { BrowserRouter, Link, NavLink, Route, Routes } from 'react-router-dom'
-import { BriefcaseBusiness, FileText, Kanban, LayoutDashboard, ListChecks, PenLine } from 'lucide-react'
+import { BriefcaseBusiness, FileText, Kanban, LayoutDashboard, ListChecks, MessageSquare, PenLine } from 'lucide-react'
 import Dashboard from './pages/Dashboard.jsx'
 import Analyze from './pages/Analyze.jsx'
 import Applications from './pages/Applications.jsx'
 import CoverLetter from './pages/CoverLetter.jsx'
+import InterviewPrep from './pages/InterviewPrep.jsx'
 import KanbanBoardPage from './pages/KanbanBoard.jsx'
 import Export from './pages/Export.jsx'
 
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
   { to: '/kanban', label: 'Kanban Board', icon: Kanban },
   { to: '/applications', label: 'Applications', icon: BriefcaseBusiness },
   { to: '/cover-letter', label: 'Cover Letter', icon: PenLine },
+  { to: '/interview-prep', label: 'Interview Prep', icon: MessageSquare },
   { to: '/export', label: 'Export', icon: ListChecks },
 ]
 
@@ -72,6 +74,7 @@ export default function App() {
             <Route path="/kanban" element={<KanbanBoardPage />} />
             <Route path="/applications" element={<Applications />} />
             <Route path="/cover-letter" element={<CoverLetter />} />
+            <Route path="/interview-prep" element={<InterviewPrep />} />
             <Route path="/export" element={<Export />} />
           </Routes>
         </main>

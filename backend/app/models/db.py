@@ -36,6 +36,7 @@ class Application(Base):
     gap_analysis_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     cover_letter_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     cover_letter_versions_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    interview_prep_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), nullable=False

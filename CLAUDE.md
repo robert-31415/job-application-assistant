@@ -153,7 +153,7 @@ cd frontend && npm run test
 | 3 | Resume Comparison Agent | ✅ Complete |
 | 4 | Cover Letter Generator | ✅ Complete |
 | 5 | Kanban Application Tracker | ✅ Complete |
-| 6 | Export, Interview Prep, README | Pending |
+| 6 | Export, Interview Prep, README | ✅ Complete |
 
 ---
 
@@ -239,3 +239,45 @@ Three persistent tabs for local development — don't mix commands between them:
   - Saved → `saved`, Applied → `applied`, Phone Screen → `screen`, Interview → `interview`, Offer → `offer`, Rejected → `rejected`
 - **Kanban component architecture:** `components/KanbanBoard.jsx` contains the DnD board logic and is used by both `pages/Applications.jsx` (route `/applications`) and `pages/KanbanBoard.jsx` (route `/kanban`). `components/KanbanCard.jsx` renders each card with notes/delete. `components/ApplicationDrawer.jsx` is the right-side detail drawer. `components/AddApplicationModal.jsx` creates an application then navigates to `/analyze` with `state: { applicationId }`.
 - **Analyze page pre-population:** when navigated to with `state.applicationId` (from `AddApplicationModal`), `Analyze.jsx` loads the application via `listApplications()`, pre-fills the form, and skips `createApplication` on submit since the record already exists.
+- **Interview Prep agent:** `agents/interview_prep.py` exports `generate_interview_questions(jd_analysis, gap_analysis) -> InterviewPrepOutput`. Generates exactly 10 questions: 4 behavioral (STAR), 3 technical (tied to required_skills), 2 situational, 1 culture fit. Each question has `question`, `category`, and `suggested_framework`.
+- **Export endpoints:** `GET /api/export/cover-letter/{id}` and `GET /api/export/interview-prep/{id}` return DOCX files via `StreamingResponse`. The interview-prep export reads from persisted `interview_prep_json` — no Claude API call at download time. python-docx builds the documents in memory (`io.BytesIO`) — no temp files written to disk.
+- **Export client functions:** `exportCoverLetter(id)` and `exportInterviewPrep(id)` in `api/client.js` use `responseType: 'blob'`, create an object URL, and click a temporary `<a>` element to trigger the browser download.
+
+---
+
+## Known Limitations
+
+- **SQLite is not production-grade** — suitable for single-user local development only; concurrent writes will serialize and large datasets will degrade performance.
+- **No authentication layer** — the API has no auth; anyone who can reach port 8000 can read and write all data.
+- **Single-user only** — resumes and applications are stored globally; there is no concept of user accounts or data isolation.
+- **`interview_prep_json` column added without Alembic** — no migration exists; if the DB is recreated the column must be re-added manually: `sqlite3 backend/data/app.db "ALTER TABLE applications ADD COLUMN interview_prep_json TEXT;"`
+- **Cover letter export always downloads the latest version** — version-specific export is not supported; the DOCX always reflects `cover_letter_text` (the most recent refinement).
+- **Interview prep export requires prior generation** — `GET /api/export/interview-prep/{id}` reads from persisted `interview_prep_json`; the download button is disabled until the prep sheet has been generated at least once.
+
+---
+
+## Future Enhancements
+
+- **Multi-user support** — add JWT auth, user accounts, and row-level data isolation.
+- **PostgreSQL migration** — swap SQLite for PostgreSQL for production use; SQLAlchemy's async engine makes this a config-only change.
+- **Resume versioning** — track multiple resume versions and allow per-application resume selection.
+- **Email application tracking** — auto-ingest application confirmation emails via a Gmail/Outlook connector to update Kanban status automatically.
+- **Alembic migrations** — replace manual `ALTER TABLE` statements with Alembic so schema changes are tracked, versioned, and reproducible.
+- **Version-specific cover letter export** — allow the user to select any version from the history sidebar and download that specific version as DOCX.
+- **Export page enhancements** — show the cover letter version number and generation date alongside the download button so the user knows exactly what they are downloading.
+
+---
+
+## Post-Loop Bug Fixes
+
+Bugs discovered and fixed after the main development loops completed:
+
+- **`applicationId` null in `Analyze.jsx` after JD analysis** — `setApplicationId(null)` at the top of `handleSubmit` reset state unconditionally, and `setApplicationId(appId)` was only called inside the `if (!appId)` branch (new applications). For pre-loaded applications navigated from Kanban, `applicationId` stayed null after analysis, breaking "Compare with My Resume". Fixed by calling `setApplicationId(appId)` unconditionally after `setAnalysis(result)`.
+
+- **Cover Letter page not restoring existing versions on application select** — switching application in the dropdown cleared `versions` and `activeVersion` to empty/null and never reloaded persisted data. Fixed by adding a `useEffect` on `selectedAppId` that calls `getApplication(id)` and, if `cover_letter_versions_json` is non-null, parses it and restores `versions` and `activeVersion` to the last entry.
+
+- **Interview Prep page not restoring persisted questions on application select** — same pattern: selecting an application only showed a generate button, ignoring any previously generated questions stored in `interview_prep_json`. Fixed by adding a `useEffect` on `selectedAppId` that calls `getApplication(id)` and, if `interview_prep_json` is non-null, parses and sets `prepData` directly.
+
+- **Interview prep export regenerated questions on every download** — `GET /api/export/interview-prep/{id}` called `generate_interview_questions(...)` live, adding a 30-second Claude API call to every download. Fixed by loading `interview_prep_json` from the application row and parsing with `InterviewPrepOutput.model_validate_json()`. Returns 404 if `interview_prep_json` is null.
+
+- **Export page was a placeholder** — `pages/Export.jsx` contained only a static "implemented in Phase 6" message. Built as a functional export hub with an application selector dropdown, per-document status indicators (green checkmark / grey dash), and download buttons that disable when content has not yet been generated.

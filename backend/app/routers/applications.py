@@ -1,6 +1,7 @@
 """Application CRUD endpoints.
 
 GET    /api/applications      — list all applications (with optional status filter)
+GET    /api/applications/{id} — fetch a single application by ID
 POST   /api/applications      — create a new application record
 PATCH  /api/applications/{id} — update status, notes, or other fields
 DELETE /api/applications/{id} — delete an application
@@ -51,6 +52,19 @@ async def create_application(
     db.add(app)
     await db.commit()
     await db.refresh(app)
+    return ApplicationResponse.model_validate(app)
+
+
+@router.get("/{app_id}", response_model=ApplicationResponse)
+async def get_application(
+    app_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> ApplicationResponse:
+    """Fetch a single application record by ID."""
+    result = await db.execute(select(Application).where(Application.id == app_id))
+    app = result.scalar_one_or_none()
+    if app is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found.")
     return ApplicationResponse.model_validate(app)
 
 
