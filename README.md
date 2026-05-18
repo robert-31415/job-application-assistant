@@ -23,6 +23,34 @@ Claude and Tavily web search.
 
 ---
 
+## Screenshots
+
+### Dashboard
+![Dashboard](docs/screenshots/01-Dashboard.png)
+
+### Analyze Job Description
+![Analyze JD Before](docs/screenshots/02-Analyze_Job_Description-Before.png)
+![Analyze JD After](docs/screenshots/03-Analyze_Job_Description-After.png)
+
+### Kanban Board
+![Kanban Board](docs/screenshots/04-Kanban_Board.png)
+![Kanban Board Side Panel](docs/screenshots/05-Kanban_Board-Side_Panel.png)
+
+### Applications
+![Applications Saved](docs/screenshots/06-Applications-Saved.png)
+![Applications Applied](docs/screenshots/07-Applications-Applied.png)
+
+### Cover Letter
+![Cover Letter](docs/screenshots/08-Cover_Letter.png)
+
+### Interview Prep
+![Interview Prep](docs/screenshots/09-Interview_Prep.png)
+
+### Export
+![Export](docs/screenshots/10-Export.png)
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
